@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+
+    <div class="w-full  bg-zinc-900">
+        <div class="parent w-full relative top-0 left-0 h-[700vh] ">
+            <div class="w-full h-screen  sticky top-0 left-0 ">
+                <canvas id="my-canvas" class="w-full h-screen"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"
+        integrity="sha512-NcZdtrT77bJr4STcmsGAESr06BYGE8woZdSdEgqnpyqac7sugNO+Tr4bGwGF3MsnEkGKhU2KL2xh6Ec+BqsaHA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+    
+        let canvas = document.getElementById("my-canvas");
+        let context = canvas.getContext("2d");
+    
+        const frames = {
+            currentIndex: 0,
+            maxIndex: 382
+        };
+    
+        let imagesLoaded = 0;
+        const images = [];
+    
+        function preloadImage() {
+            for (let i = 1; i <= frames.maxIndex; i++) {
+                const imageUrl = `./frames/frame_${i.toString().padStart(4, "0")}.jpeg`;
+                const img = new Image();
+                img.src = imageUrl;
+    
+                img.onload = () => {
+                    imagesLoaded++;
+                    if (imagesLoaded === frames.maxIndex) {
+                        loadImage(frames.currentIndex);
+                        animate();
+                    }
+                };
+    
+                images.push(img);
+            }
+        }
+    
+        function loadImage(index) {
+            if (index >= 0 && index < images.length) {
+                const img = images[index];
+    
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = window.innerWidth * dpr;
+                canvas.height = window.innerHeight * dpr;
+                context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    
+                const scaleX = canvas.width / dpr / img.width;
+                const scaleY = canvas.height / dpr / img.height;
+                const scale = Math.max(scaleX, scaleY);
+    
+                const newWidth = img.width * scale;
+                const newHeight = img.height * scale;
+    
+                const offsetX = (canvas.width / dpr - newWidth) / 2;
+                const offsetY = (canvas.height / dpr - newHeight) / 2;
+    
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(img, offsetX, offsetY, newWidth, newHeight);
+            }
+        }
+    
+        function animate() {
+            let timeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: ".parent",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 2,
+                    // markers: true // Enable if you want to debug scroll range
+                }
+            });
+    
+            timeline.to(frames, {
+                currentIndex: frames.maxIndex - 1,
+                onUpdate: () => {
+                    loadImage(Math.floor(frames.currentIndex));
+                },
+                ease: "none"
+            });
+        }
+    
+        preloadImage();
+    </script>
+</body>
+
+</html>
